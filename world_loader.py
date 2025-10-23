@@ -1,6 +1,6 @@
 from enum import Enum
 import pygame
-from interfaz import ui_loop
+from ui import ui_loop
 
 
 class WORLD_ITEMS(Enum):
