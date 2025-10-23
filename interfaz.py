@@ -67,7 +67,7 @@ class Button:
                 self.on_click()
 
 
-def draw_map(surface, area, grid_size):
+def draw_map(surface, area, grid_size, map):
     """Draws a grid map."""
     cell_width = area.width // grid_size
     cell_height = area.height // grid_size
@@ -77,7 +77,23 @@ def draw_map(surface, area, grid_size):
             x_position = area.left + (col * cell_width)
             y_position = area.top + (row * cell_height)
             rect = pygame.Rect(x_position, y_position, cell_width, cell_height)
-            pygame.draw.rect(surface, COLOURS["GREEN"], rect, 0)
+            # pygame.draw.rect(surface, COLOURS["GREEN"], rect, 0)
+            pygame.draw.rect(surface, pygame.image.load("asteroid.png"), rect, 0)
+
+
+def draw_map(surface, area, grid_size, map):
+    """Draws a grid map."""
+    cell_width = area.width // grid_size
+    cell_height = area.height // grid_size
+
+    for row_number in range(len(map)):
+        row = map[row_number]
+        for col_number in range(len(row)):
+            image = row[col_number]
+            x_position = area.left + (col_number * cell_width)
+            y_position = area.top + (row_number * cell_height)
+            rect = pygame.Rect(x_position, y_position, cell_width, cell_height)
+            surface.blit(image, rect)
 
 
 def draw_sidepanel():
@@ -135,7 +151,7 @@ buttons = [
 ]
 
 
-def ui_loop():
+def ui_loop(map):
     clock = pygame.time.Clock()
 
     while True:
@@ -152,11 +168,8 @@ def ui_loop():
         for button in buttons:
             button.draw(screen)
 
-        draw_map(screen, MAP_AREA, MAP_SIZE)
+        draw_map(screen, MAP_AREA, MAP_SIZE, map)
         draw_sidepanel()
 
         pygame.display.flip()
         clock.tick(60)
-
-
-ui_loop()
