@@ -47,42 +47,24 @@ SIDEPANEL_RECTS = {
 
 
 class Button:
-    """Simple clickable button."""
-
     def __init__(self, rect, color, text, on_click):
         self.rect = pygame.Rect(rect)
         self.color = color
         self.text = text
         self.on_click = on_click
 
-    def draw(self, surface):
+    def draw(self, surface, font, COLOURS):
         pygame.draw.rect(surface, self.color, self.rect)
         label = font.render(self.text, True, COLOURS["BLACK"])
         surface.blit(label, (self.rect.x + 15, self.rect.y + 15))
 
     def handle_event(self, event):
-        """Check if button is clicked and call its callback."""
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
                 self.on_click()
 
 
 def draw_map(surface, area, grid_size, map):
-    """Draws a grid map."""
-    cell_width = area.width // grid_size
-    cell_height = area.height // grid_size
-
-    for row in range(grid_size):
-        for col in range(grid_size):
-            x_position = area.left + (col * cell_width)
-            y_position = area.top + (row * cell_height)
-            rect = pygame.Rect(x_position, y_position, cell_width, cell_height)
-            # pygame.draw.rect(surface, COLOURS["GREEN"], rect, 0)
-            pygame.draw.rect(surface, pygame.image.load("asteroid.png"), rect, 0)
-
-
-def draw_map(surface, area, grid_size, map):
-    """Draws a grid map."""
     cell_width = area.width // grid_size
     cell_height = area.height // grid_size
 
@@ -97,7 +79,6 @@ def draw_map(surface, area, grid_size, map):
 
 
 def draw_sidepanel():
-    """Draws the right-hand side panels."""
     summary_panel = SIDEPANEL_RECTS["SUMMARY"]
     info_panel = SIDEPANEL_RECTS["INFO"]
     extra_panel = SIDEPANEL_RECTS["EXTRA"]
@@ -124,18 +105,19 @@ def draw_sidepanel():
     )
 
 
+BUTTON_HEIGHT = TOP_BAR_HEIGHT
+BUTTON_WIDTH = 150
+
+
 def on_uninformed_search_click():
-    print("Uninformed search button was clicked!")
+    show_uninformed_buttons()
 
 
 def on_informed_search_click():
-    print("Informed searh button was clicked!")
+    show_informed_buttons()
 
 
-BUTTON_WIDTH = 150
-BUTTON_HEIGHT = TOP_BAR_HEIGHT
-
-buttons = [
+ALGORITHM_TYPE_BUTTONS = [
     Button(
         (0, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
         COLOURS["RED"],
@@ -150,6 +132,76 @@ buttons = [
     ),
 ]
 
+current_buttons = []
+
+
+def set_buttons(new_buttons):
+    global current_buttons
+    current_buttons = new_buttons
+
+
+def show_main_buttons():
+    set_buttons(ALGORITHM_TYPE_BUTTONS)
+
+
+def show_uninformed_buttons():
+    set_buttons(
+        [
+            Button(
+                (0, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
+                COLOURS["GREEN"],
+                "Amplitud",
+                lambda: print("Amplitud"),
+            ),
+            Button(
+                (BUTTON_WIDTH, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
+                COLOURS["CYAN"],
+                "Profundidad",
+                lambda: print("Profundidad"),
+            ),
+            Button(
+                (BUTTON_WIDTH * 2, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
+                COLOURS["MAGENTA"],
+                "C. uniforme",
+                lambda: print("Costo uniforme"),
+            ),
+            Button(
+                (BUTTON_WIDTH * 3, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
+                COLOURS["LIGHT_GRAY"],
+                "Regresar",
+                show_main_buttons,
+            ),
+        ]
+    )
+
+
+def show_informed_buttons():
+    set_buttons(
+        [
+            Button(
+                (0, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
+                COLOURS["GREEN"],
+                "Avara",
+                lambda: print("Greedy"),
+            ),
+            Button(
+                (BUTTON_WIDTH, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
+                COLOURS["CYAN"],
+                "A*",
+                lambda: print("A*"),
+            ),
+            Button(
+                (BUTTON_WIDTH * 2, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
+                COLOURS["MAGENTA"],
+                "Regresar",
+                show_main_buttons,
+            ),
+        ]
+    )
+
+
+set_buttons(ALGORITHM_TYPE_BUTTONS)  # For the informed/uninformed buttons
+
 
 def ui_loop(map):
     clock = pygame.time.Clock()
@@ -160,13 +212,13 @@ def ui_loop(map):
                 pygame.quit()
                 sys.exit()
 
-            for button in buttons:
+            for button in current_buttons:
                 button.handle_event(event)
 
         screen.fill(BG_COLOR)
 
-        for button in buttons:
-            button.draw(screen)
+        for button in current_buttons:
+            button.draw(screen, font, COLOURS)
 
         draw_map(screen, MAP_AREA, MAP_SIZE, map)
         draw_sidepanel()
