@@ -23,11 +23,11 @@ WORLD_ITEMS_SPRITES = {
     WORLD_ITEMS.SCIENTIFIC_SAMPLE.value: pygame.image.load("./assets/astronaut.png"),
 }
 
-with open("Prueba1.txt", "r") as file:
-    file_lines = file.readlines()
 
+def build_matrix_from_txt_file():
+    with open("Prueba1.txt", "r") as file:
+        file_lines = file.readlines()
 
-def build_matrix_from_txt_file(file_lines):
     matrix = []
     for line in file_lines:
         stripped_line: str = line.replace("\n", "").replace(" ", "")
@@ -48,9 +48,3 @@ def build_map_from_matrix(matrix):
         map.append(map_row)
 
     return map
-
-
-raw_matrix = build_matrix_from_txt_file(file_lines)
-print(raw_matrix)
-game_map = build_map_from_matrix(raw_matrix)
-ui_loop(game_map)
