@@ -85,6 +85,8 @@ def draw_map(surface, area, grid_size, map):
         row = map[row_number]
         for col_number in range(len(row)):
             image = row[col_number]
+            
+            image = pygame.transform.scale(image, (cell_width, cell_height))
             x_position = area.left + (col_number * cell_width)
             y_position = area.top + (row_number * cell_height)
             rect = pygame.Rect(x_position, y_position, cell_width, cell_height)

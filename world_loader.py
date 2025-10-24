@@ -1,4 +1,5 @@
 from enum import Enum
+import os
 import pygame
 
 
@@ -11,20 +12,29 @@ class WORLD_ITEMS(Enum):
     SHIP = 5
     SCIENTIFIC_SAMPLE = 6
 
+# Build absolute path to the assets directory next to this module
+ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
+
+def _load_image(filename):
+    path = os.path.join(ASSETS_DIR, filename)
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"Asset not found: {path}")
+    return pygame.image.load(path)
 
 WORLD_ITEMS_SPRITES = {
-    WORLD_ITEMS.EMPTY.value: pygame.image.load("./assets/grass.jpeg"),
-    WORLD_ITEMS.OBSTACLE.value: pygame.image.load("./assets/obstacle.png"),
-    WORLD_ITEMS.ASTRONAUT.value: pygame.image.load("./assets/astronaut.png"),
-    WORLD_ITEMS.ROCKY_TERRAIN.value: pygame.image.load("./assets/astronaut.png"),
-    WORLD_ITEMS.VOLCANIC_TERRAIN.value: pygame.image.load("./assets/volcan.jpg"),
-    WORLD_ITEMS.SHIP.value: pygame.image.load("./assets/astronaut.png"),
-    WORLD_ITEMS.SCIENTIFIC_SAMPLE.value: pygame.image.load("./assets/astronaut.png"),
+    WORLD_ITEMS.EMPTY.value: _load_image("ground.png"),
+    WORLD_ITEMS.OBSTACLE.value: _load_image("obstacle.png"),
+    WORLD_ITEMS.ASTRONAUT.value: _load_image("astronaut.png"),
+    WORLD_ITEMS.ROCKY_TERRAIN.value: _load_image("rocky_terrain.png"),
+    WORLD_ITEMS.VOLCANIC_TERRAIN.value: _load_image("volcan.png"),
+    WORLD_ITEMS.SHIP.value: _load_image("ship.png"),
+    WORLD_ITEMS.SCIENTIFIC_SAMPLE.value: _load_image("scientific_sample.png"),
 }
 
-
 def build_matrix_from_txt_file():
-    with open("Prueba1.txt", "r") as file:
+    
+    ASSETS_DIR = os.path.join(os.path.dirname(__file__), "Prueba1.txt")
+    with open(ASSETS_DIR, "r") as file:
         file_lines = file.readlines()
 
     matrix = []
