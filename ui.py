@@ -1,5 +1,6 @@
 import pygame
 import sys
+import time
 from algoritmo_a_estrella import a_star
 from algoritmo_avara import greedy_best_first_search
 
@@ -15,13 +16,15 @@ BG_COLOR = (255, 255, 255)
 COLOURS = {
     "RED": (255, 0, 0),         # Astronauta
     "YELLOW": (255, 255, 0),    # Rocoso
-    "CYAN": (0, 200, 255),      # Camino
+    "CYAN": (0, 200, 255),      # Camino 1
     "GREEN": (0, 255, 0),       # Meta
     "MAGENTA": (255, 0, 255),   # Nave
     "LIGHT_GRAY": (220, 220, 220),  # Libre
     "ORANGE": (255, 165, 0),    # Volcánico
     "BLACK": (0, 0, 0),         # Obstáculo
     "WHITE": (255, 255, 255),
+    "BLUE": (0, 0, 255),        # Camino 2
+    "PINK": (255, 105, 180),    # Camino 3
 }
 
 pygame.init()
@@ -89,13 +92,11 @@ def draw_sidepanel(info_data):
     pygame.draw.rect(screen, COLOURS["LIGHT_GRAY"], info_panel)
     pygame.draw.rect(screen, COLOURS["ORANGE"], extra_panel)
 
-    # Textos principales
     screen.blit(font.render("Resumen", True, COLOURS["BLACK"]), (summary_panel.x + 20, summary_panel.y + 20))
     screen.blit(font.render("Configuración", True, COLOURS["BLACK"]), (summary_panel.x + 20, summary_panel.y + 50))
     screen.blit(font.render("Info", True, COLOURS["BLACK"]), (info_panel.x + 20, info_panel.y + 20))
     screen.blit(font.render("Extra: Animación", True, COLOURS["BLACK"]), (extra_panel.x + 20, extra_panel.y + 20))
 
-    # Mostrar los datos del algoritmo
     if info_data:
         y_pos = info_panel.y + 60
         for key, value in info_data.items():
@@ -105,7 +106,7 @@ def draw_sidepanel(info_data):
 
 
 # ---------------------------------------------
-# BOTONES PRINCIPALES
+# BOTONES
 # ---------------------------------------------
 BUTTON_HEIGHT = TOP_BAR_HEIGHT
 BUTTON_WIDTH = 150
@@ -123,6 +124,7 @@ ALGORITHM_TYPE_BUTTONS = [
 
 current_buttons = []
 info_data = {}
+sim_paths = []
 
 def set_buttons(new_buttons):
     global current_buttons
@@ -130,6 +132,7 @@ def set_buttons(new_buttons):
 
 def show_main_buttons():
     set_buttons(ALGORITHM_TYPE_BUTTONS)
+
 
 def show_uninformed_buttons():
     set_buttons([
@@ -139,29 +142,30 @@ def show_uninformed_buttons():
         Button((BUTTON_WIDTH * 3, 0, BUTTON_WIDTH, BUTTON_HEIGHT), COLOURS["LIGHT_GRAY"], "Regresar", show_main_buttons),
     ])
 
+
 # ---------------------------------------------
 # FUNCIONES DE APOYO
 # ---------------------------------------------
 def find_positions(matrix, start_value=2, goal_value=6):
     start = None
-    goal = None
+    goals = []
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
             if matrix[i][j] == start_value:
                 start = (i, j)
             elif matrix[i][j] == goal_value:
-                goal = (i, j)
-    return start, goal
+                goals.append((i, j))
+    return start, goals
 
 
-def paint_path_on_map(matrix_visual, path):
-    for pos in path:
-        x, y = pos
-        matrix_visual[x][y].fill(COLOURS["CYAN"])  # pinta el camino de azul celeste
+def paint_paths_on_map(matrix_visual, paths):
+    colors = [COLOURS["CYAN"], COLOURS["BLUE"], COLOURS["PINK"]]
+    for i, path in enumerate(paths):
+        for x, y in path:
+            matrix_visual[x][y].fill(colors[i % len(colors)])
 
 
 def reset_map_visual():
-    """Restaura los colores originales del mapa antes de ejecutar otro algoritmo."""
     cell_width = (WIDTH - RIGHT_PANEL_WIDTH) // MAP_SIZE
     cell_height = (HEIGHT - TOP_BAR_HEIGHT) // MAP_SIZE
 
@@ -187,56 +191,66 @@ def reset_map_visual():
 
 
 # ---------------------------------------------
-# FUNCIONES DE LOS BOTONES INFORMADOS
+# BOTONES DE LOS ALGORITMOS
 # ---------------------------------------------
-def on_avara_click():
-    global info_data
-    print("Ejecutando algoritmo Avara...")
-    reset_map_visual()
-    start, goal = find_positions(matrix_real)
-
-    if not start or not goal:
-        print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
-        return
-
-    resultado = greedy_best_first_search(matrix_real, start, goal)
-    if resultado:
-        print("🔹 Resultado Avara:", resultado)
-        paint_path_on_map(map_visual, resultado["path"])
-        info_data = {
-            "Algoritmo": "Avara",
-            "Costo": resultado["cost"],
-            "Profundidad": resultado["depth"],
-            "Nodos": resultado["expanded_nodes"],
-            "Tiempo": round(resultado["time"], 4),
-        }
-    else:
-        print("⚠️ No se encontró un camino.")
-
-
 def on_a_estrella_click():
-    global info_data
-    print("Ejecutando algoritmo A*...")
+    global info_data, sim_paths
     reset_map_visual()
-    start, goal = find_positions(matrix_real)
-
-    if not start or not goal:
-        print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
-        return
-
-    resultado = a_star(matrix_real, start, goal)
+    start, goals = find_positions(matrix_real)
+    resultado = a_star(matrix_real, start, goals)
     if resultado:
-        print("🔹 Resultado A*:", resultado)
-        paint_path_on_map(map_visual, resultado["path"])
+        paint_paths_on_map(map_visual, resultado["paths"])
+        sim_paths = resultado["paths"]
         info_data = {
             "Algoritmo": "A*",
-            "Costo": resultado["cost"],
+            "Costo total": resultado["cost"],
             "Profundidad": resultado["depth"],
             "Nodos": resultado["expanded_nodes"],
             "Tiempo": round(resultado["time"], 4),
         }
+        add_simulate_button()
     else:
         print("⚠️ No se encontró un camino.")
+
+
+def on_avara_click():
+    global info_data, sim_paths
+    reset_map_visual()
+    start, goals = find_positions(matrix_real)
+    resultado = greedy_best_first_search(matrix_real, start, goals)
+    if resultado:
+        paint_paths_on_map(map_visual, resultado["paths"])
+        sim_paths = resultado["paths"]
+        info_data = {
+            "Algoritmo": "Avara",
+            "Costo total": resultado["cost"],
+            "Profundidad": resultado["depth"],
+            "Nodos": resultado["expanded_nodes"],
+            "Tiempo": round(resultado["time"], 4),
+        }
+        add_simulate_button()
+    else:
+        print("⚠️ No se encontró un camino.")
+
+
+def simulate_path():
+    reset_map_visual()
+    cell_width = (WIDTH - RIGHT_PANEL_WIDTH) // MAP_SIZE
+    cell_height = (HEIGHT - TOP_BAR_HEIGHT) // MAP_SIZE
+
+    for path in sim_paths:
+        for (x, y) in path:
+            map_visual[x][y].fill(COLOURS["CYAN"])
+            draw_map(screen, MAP_AREA, MAP_SIZE, map_visual)
+            draw_sidepanel(info_data)
+            pygame.display.flip()
+            time.sleep(0.1)
+
+
+def add_simulate_button():
+    current_buttons.append(
+        Button((BUTTON_WIDTH * 3, 0, BUTTON_WIDTH, BUTTON_HEIGHT), COLOURS["YELLOW"], "Simular", simulate_path)
+    )
 
 
 def show_informed_buttons():
@@ -248,18 +262,13 @@ def show_informed_buttons():
 
 
 # ---------------------------------------------
-# CARGAR MAPA DESDE ARCHIVO
+# CARGAR MAPA
 # ---------------------------------------------
 def build_matrix_from_txt_file(filename="Prueba1.txt"):
     with open(filename, "r") as file:
-        file_lines = file.readlines()
+        lines = file.readlines()
 
-    matrix = []
-    for line in file_lines:
-        stripped_line = line.strip().replace(" ", "")
-        new_row = [int(x) for x in stripped_line]
-        matrix.append(new_row)
-    return matrix
+    return [[int(x) for x in line.strip().replace(" ", "")] for line in lines]
 
 
 # ---------------------------------------------
@@ -267,7 +276,6 @@ def build_matrix_from_txt_file(filename="Prueba1.txt"):
 # ---------------------------------------------
 def ui_loop(map):
     clock = pygame.time.Clock()
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -278,7 +286,6 @@ def ui_loop(map):
                 button.handle_event(event)
 
         screen.fill(BG_COLOR)
-
         for button in current_buttons:
             button.draw(screen, font, COLOURS)
 
@@ -294,7 +301,6 @@ def ui_loop(map):
 # ---------------------------------------------
 if __name__ == "__main__":
     matrix_real = build_matrix_from_txt_file("Prueba1.txt")
-
     cell_width = (WIDTH - RIGHT_PANEL_WIDTH) // MAP_SIZE
     cell_height = (HEIGHT - TOP_BAR_HEIGHT) // MAP_SIZE
 
