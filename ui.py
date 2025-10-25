@@ -150,6 +150,8 @@ def draw_steps(steps):
 
 
 def find_positions(matrix, start_value=2, goal_value=6):
+    print("Find positions")
+    print(matrix)
     start = None
     goals = []
 
@@ -199,14 +201,13 @@ def set_buttons(new_buttons):
 def on_depth_click(matrix):
     global info_data
     print("Ejecutando algoritmo profundidad...")
-    # reset_map_visual()
     start, goal = find_positions(matrix)
 
     if not start or not goal:
         print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
         return
 
-    resultado = ejecutar_profundidad_animada(screen, matrix)
+    resultado = ejecutar_profundidad_animada(matrix)
     if not resultado:
         print("⚠️ No se encontró un camino.")
         return
@@ -269,7 +270,6 @@ def on_avara_click(matrix):
 def on_a_estrella_click(matrix):
     global info_data
     print("Ejecutando algoritmo A*...")
-    # reset_map_visual()
     start, goal = find_positions(matrix)
 
     if not start or not goal:
@@ -283,7 +283,6 @@ def on_a_estrella_click(matrix):
 
     print("🔹 Resultado A*:", resultado)
     draw_steps(resultado["paths"])
-    # paint_path_on_map(map_visual, resultado["path"])
     info_data = resultado
 
 
@@ -322,18 +321,26 @@ def show_informed_buttons(matrix):
 set_buttons(ALGORITHM_TYPE_BUTTONS)  # For the informed/uninformed buttons
 
 
+def draw_cell(row, col, cell_width, cell_height):
+    x = MAP_AREA.left + col * cell_width
+    y = MAP_AREA.top + row * cell_height
+    rect = pygame.Rect(x, y, cell_width, cell_height)
+    pygame.draw.rect(screen, COLOURS["CYAN"], rect)
+
+    pygame.display.update(rect)
+    pygame.time.delay(100)
+
+
 def draw_algorithm_path():
     cell_width = MAP_AREA.width // MAP_SIZE
     cell_height = MAP_AREA.height // MAP_SIZE
-    for l in drawn_steps:
-        for row, col in l:
-            x = MAP_AREA.left + col * cell_width
-            y = MAP_AREA.top + row * cell_height
-            rect = pygame.Rect(x, y, cell_width, cell_height)
-            pygame.draw.rect(screen, COLOURS["CYAN"], rect)
-
-            pygame.display.update(rect)
-            pygame.time.delay(100)
+    if isinstance(drawn_steps[0], list):
+        for l in drawn_steps:
+            for row, col in l:
+                draw_cell(row, col, cell_width, cell_height)
+    elif isinstance(drawn_steps[0], tuple):
+        for row, col in drawn_steps:
+            draw_cell(row, col, cell_width, cell_height)
 
 
 def ui_loop(map):
