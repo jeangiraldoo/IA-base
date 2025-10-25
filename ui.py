@@ -1,5 +1,4 @@
 import pygame
-import time
 import sys
 from algoritmo_avara import greedy_best_first_search
 from algoritmo_a_estrella import a_star
@@ -8,13 +7,12 @@ from amplitud import ejecutar_amplitud_desde_matriz
 
 
 from world_loader import build_map_from_matrix, build_matrix_from_txt_file
-# from ui import ui_loop
+from starcraft_frame import draw_astronaut_animation
 
 matrix = build_matrix_from_txt_file()
 print(matrix)
 game_map = build_map_from_matrix(matrix)
 print(game_map)
-# ui_loop(game_map)
 info_data = {"algorithm_name": "", "cost": ""}
 drawn_steps = []
 
@@ -90,7 +88,7 @@ def draw_map(surface, area, grid_size, map):
         row = map[row_number]
         for col_number in range(len(row)):
             image = row[col_number]
-            
+
             image = pygame.transform.scale(image, (cell_width, cell_height))
             x_position = area.left + (col_number * cell_width)
             y_position = area.top + (row_number * cell_height)
@@ -120,7 +118,7 @@ def draw_sidepanel(info_data):
         (info_panel.x + 20, info_panel.y + 20),
     )
     screen.blit(
-        font.render("Extra: Animación", True, COLOURS["BLACK"]),
+        font.render("", True, COLOURS["BLACK"]),
         (extra_panel.x + 20, extra_panel.y + 20),
     )
 
@@ -321,6 +319,7 @@ def show_informed_buttons(matrix):
         ]
     )
 
+
 def on_amplitud_click(matrix):
     global info_data
     print("Ejecutando algoritmo Amplitud (BFS)...")
@@ -396,6 +395,7 @@ def ui_loop(map):
             draw_algorithm_path()
 
         draw_sidepanel(info_data)
+        draw_astronaut_animation(screen, SIDEPANEL_RECTS)
         pygame.display.flip()
         clock.tick(60)
 
