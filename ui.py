@@ -4,6 +4,8 @@ import sys
 from algoritmo_avara import greedy_best_first_search
 from algoritmo_a_estrella import a_star
 from profundidad_evitando_ciclos import ejecutar_profundidad_animada
+from amplitud import ejecutar_amplitud_desde_matriz
+
 
 from world_loader import build_map_from_matrix, build_matrix_from_txt_file
 # from ui import ui_loop
