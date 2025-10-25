@@ -1,11 +1,6 @@
 import pygame
 import sys
-from algorithms import (
-    avaro,
-    a_star,
-    breadth,
-    depth,
-)
+from algorithms import avaro, a_star, breadth, depth, uniform_cost
 
 from world_loader import build_map_from_matrix, build_matrix_from_txt_file
 from starcraft_frame import draw_astronaut_animation
@@ -239,7 +234,7 @@ def show_uninformed_buttons():
                 (BUTTON_WIDTH * 2, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
                 COLOURS["MAGENTA"],
                 "C. uniforme",
-                lambda: print("Costo uniforme"),
+                lambda: on_uniform_cost_click(matrix),
             ),
             Button(
                 (BUTTON_WIDTH * 3, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
@@ -249,6 +244,25 @@ def show_uninformed_buttons():
             ),
         ]
     )
+
+
+def on_uniform_cost_click(matrix):
+    global info_data
+    print("Ejecutando algoritmo costo uniforme...")
+    start, goal = find_positions(matrix)
+
+    if not start or not goal:
+        print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
+        return
+
+    resultado = uniform_cost.ejecutar_costo_uniforme_desde_matriz(matrix)
+    if not resultado:
+        print("⚠️ No se encontró un camino.")
+        return
+
+    print("🔹 Resultado C. uniforme:", resultado)
+    draw_steps(resultado["paths"])
+    info_data = resultado
 
 
 def on_avara_click(matrix):
