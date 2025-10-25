@@ -228,7 +228,7 @@ def show_uninformed_buttons():
                 (0, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
                 COLOURS["GREEN"],
                 "Amplitud",
-                lambda: print("Amplitud"),
+                lambda: on_amplitud_click(matrix),
             ),
             Button(
                 (BUTTON_WIDTH, 0, BUTTON_WIDTH, BUTTON_HEIGHT),
@@ -320,6 +320,35 @@ def show_informed_buttons(matrix):
             ),
         ]
     )
+
+def on_amplitud_click(matrix):
+    global info_data
+    print("Ejecutando algoritmo Amplitud (BFS)...")
+
+    resultado = ejecutar_amplitud_desde_matriz(matrix)
+    if not resultado:
+        print("⚠️ No se pudo ejecutar Amplitud (mundo inválido o falta data).")
+        return
+
+    if not resultado.get("paths"):
+        print("⚠️ No se encontró un camino con Amplitud.")
+        info_data = resultado
+        draw_steps([])
+        return
+
+    print("🔹 Resultado Amplitud:", resultado)
+    # resultado["paths"] es una lista de (row,col) que draw_steps/draw_algorithm_path maneja
+    draw_steps(resultado["paths"])
+    # adapta keys a las que usa draw_sidepanel (info_data)
+    info_data = {
+        "algorithm_name": resultado.get("algorithm_name", "Amplitud"),
+        "cost": resultado.get("cost", ""),
+        "path": resultado.get("paths", []),
+        "expanded_nodes": resultado.get("expanded_nodes", 0),
+        "time": resultado.get("time", 0),
+        "depth": resultado.get("profundidad", 0),
+        "samples": resultado.get("muestras", 0),
+    }
 
 
 set_buttons(ALGORITHM_TYPE_BUTTONS)  # For the informed/uninformed buttons
