@@ -1,10 +1,11 @@
 import pygame
 import sys
-from algoritmo_avara import greedy_best_first_search
-from algoritmo_a_estrella import a_star
-from profundidad_evitando_ciclos import ejecutar_profundidad_animada
-from amplitud import ejecutar_amplitud_desde_matriz
-
+from algorithms import (
+    avaro,
+    a_star,
+    breadth,
+    depth,
+)
 
 from world_loader import build_map_from_matrix, build_matrix_from_txt_file
 from starcraft_frame import draw_astronaut_animation
@@ -209,7 +210,7 @@ def on_depth_click(matrix):
         print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
         return
 
-    resultado = ejecutar_profundidad_animada(matrix)
+    resultado = depth.ejecutar_profundidad_animada(matrix)
     if not resultado:
         print("⚠️ No se encontró un camino.")
         return
@@ -259,7 +260,7 @@ def on_avara_click(matrix):
         print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
         return
 
-    resultado = greedy_best_first_search(matrix, start, goal)
+    resultado = avaro.greedy_best_first_search(matrix, start, goal)
     if not resultado:
         print("⚠️ No se encontró un camino.")
         return
@@ -278,7 +279,7 @@ def on_a_estrella_click(matrix):
         print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
         return
 
-    resultado = a_star(matrix, start, goal)
+    resultado = a_star.a_star(matrix, start, goal)
     if not resultado:
         print("⚠️ No se encontró un camino.")
         return
@@ -324,7 +325,7 @@ def on_amplitud_click(matrix):
     global info_data
     print("Ejecutando algoritmo Amplitud (BFS)...")
 
-    resultado = ejecutar_amplitud_desde_matriz(matrix)
+    resultado = breadth.ejecutar_amplitud_desde_matriz(matrix)
     if not resultado:
         print("⚠️ No se pudo ejecutar Amplitud (mundo inválido o falta data).")
         return
