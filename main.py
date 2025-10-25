@@ -6,11 +6,12 @@ from world_loader import build_map_from_matrix, build_matrix_from_txt_file
 from starcraft_frame import draw_astronaut_animation
 
 matrix = build_matrix_from_txt_file()
-print(matrix)
 game_map = build_map_from_matrix(matrix)
-print(game_map)
 info_data = {"algorithm_name": "", "cost": ""}
 drawn_steps = []
+astronaut_image = pygame.transform.scale(
+    pygame.image.load("assets/astronaut/left/left.png"), (50, 50)
+)
 
 GAME_NAME = "Smart Astronaut"
 WIDTH, HEIGHT = 1000, 600
@@ -76,15 +77,12 @@ class Button:
 
 
 def draw_map(surface, area, grid_size, map):
-    print("Drawing map")
     cell_width = area.width // grid_size
     cell_height = area.height // grid_size
-
     for row_number in range(len(map)):
         row = map[row_number]
         for col_number in range(len(row)):
             image = row[col_number]
-
             image = pygame.transform.scale(image, (cell_width, cell_height))
             x_position = area.left + (col_number * cell_width)
             y_position = area.top + (row_number * cell_height)
@@ -122,7 +120,6 @@ def draw_sidepanel(info_data):
         return
 
     y_pos = info_panel.y + 60
-    print(info_data)
     spanish_keys = {
         "algorithm_name": "Algoritmo",
         "cost": "Costo",
@@ -148,24 +145,19 @@ def draw_steps(steps):
 
 
 def find_positions(matrix, start_value=2, goal_value=6):
-    print("Find positions")
-    print(matrix)
     start = None
     goals = []
-
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
             if matrix[i][j] == start_value:
                 start = (i, j)
             elif matrix[i][j] == goal_value:
                 goals.append((i, j))
-
     return start, goals
 
 
 BUTTON_HEIGHT = TOP_BAR_HEIGHT
 BUTTON_WIDTH = 150
-
 
 ALGORITHM_TYPE_BUTTONS = [
     Button(
@@ -198,19 +190,12 @@ def set_buttons(new_buttons):
 
 def on_depth_click(matrix):
     global info_data
-    print("Ejecutando algoritmo profundidad...")
     start, goal = find_positions(matrix)
-
     if not start or not goal:
-        print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
         return
-
     resultado = depth.ejecutar_profundidad_animada(matrix)
     if not resultado:
-        print("⚠️ No se encontró un camino.")
         return
-
-    print("🔹 Resultado Avara:", resultado)
     draw_steps(resultado["paths"])
     info_data = resultado
 
@@ -248,57 +233,36 @@ def show_uninformed_buttons():
 
 def on_uniform_cost_click(matrix):
     global info_data
-    print("Ejecutando algoritmo costo uniforme...")
     start, goal = find_positions(matrix)
-
     if not start or not goal:
-        print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
         return
-
     resultado = uniform_cost.ejecutar_costo_uniforme_desde_matriz(matrix)
     if not resultado:
-        print("⚠️ No se encontró un camino.")
         return
-
-    print("🔹 Resultado C. uniforme:", resultado)
     draw_steps(resultado["paths"])
     info_data = resultado
 
 
 def on_avara_click(matrix):
     global info_data
-    print("Ejecutando algoritmo Avara...")
     start, goal = find_positions(matrix)
-
     if not start or not goal:
-        print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
         return
-
     resultado = avaro.greedy_best_first_search(matrix, start, goal)
     if not resultado:
-        print("⚠️ No se encontró un camino.")
         return
-
-    print("🔹 Resultado Avara:", resultado)
     draw_steps(resultado["paths"])
     info_data = resultado
 
 
 def on_a_estrella_click(matrix):
     global info_data
-    print("Ejecutando algoritmo A*...")
     start, goal = find_positions(matrix)
-
     if not start or not goal:
-        print("❌ No se encontraron posiciones de inicio o meta en el mapa.")
         return
-
     resultado = a_star.a_star(matrix, start, goal)
     if not resultado:
-        print("⚠️ No se encontró un camino.")
         return
-
-    print("🔹 Resultado A*:", resultado)
     draw_steps(resultado["paths"])
     info_data = resultado
 
@@ -337,23 +301,14 @@ def show_informed_buttons(matrix):
 
 def on_amplitud_click(matrix):
     global info_data
-    print("Ejecutando algoritmo Amplitud (BFS)...")
-
     resultado = breadth.ejecutar_amplitud_desde_matriz(matrix)
     if not resultado:
-        print("⚠️ No se pudo ejecutar Amplitud (mundo inválido o falta data).")
         return
-
     if not resultado.get("paths"):
-        print("⚠️ No se encontró un camino con Amplitud.")
         info_data = resultado
         draw_steps([])
         return
-
-    print("🔹 Resultado Amplitud:", resultado)
-    # resultado["paths"] es una lista de (row,col) que draw_steps/draw_algorithm_path maneja
     draw_steps(resultado["paths"])
-    # adapta keys a las que usa draw_sidepanel (info_data)
     info_data = {
         "algorithm_name": resultado.get("algorithm_name", "Amplitud"),
         "cost": resultado.get("cost", ""),
@@ -365,7 +320,7 @@ def on_amplitud_click(matrix):
     }
 
 
-set_buttons(ALGORITHM_TYPE_BUTTONS)  # For the informed/uninformed buttons
+set_buttons(ALGORITHM_TYPE_BUTTONS)
 
 
 def draw_cell(row, col, cell_width, cell_height):
@@ -373,7 +328,6 @@ def draw_cell(row, col, cell_width, cell_height):
     y = MAP_AREA.top + row * cell_height
     rect = pygame.Rect(x, y, cell_width, cell_height)
     pygame.draw.rect(screen, COLOURS["CYAN"], rect)
-
     pygame.display.update(rect)
     pygame.time.delay(100)
 
@@ -389,9 +343,53 @@ def draw_algorithm_path():
         for row, col in drawn_steps:
             draw_cell(row, col, cell_width, cell_height)
 
+    animate_astronaut_traversal(drawn_steps, cell_width, cell_height)
+
+
+def animate_astronaut_traversal(steps, cell_width, cell_height):
+    if not steps:
+        return
+    for pos in steps:
+        if isinstance(pos, list):
+            for r, c in pos:
+                screen.fill(BG_COLOR)
+                draw_map(screen, MAP_AREA, MAP_SIZE, game_map)
+                draw_sidepanel(info_data)
+                for button in current_buttons:
+                    button.draw(screen, font, COLOURS)
+                draw_cell(r, c, cell_width, cell_height)
+                astronaut_rect = astronaut_image.get_rect()
+                astronaut_rect.topleft = (
+                    MAP_AREA.left + c * cell_width,
+                    MAP_AREA.top + r * cell_height,
+                )
+                screen.blit(astronaut_image, astronaut_rect)
+                pygame.display.flip()
+                pygame.time.delay(200)
+        else:
+            r, c = pos
+            screen.fill(BG_COLOR)
+            draw_map(screen, MAP_AREA, MAP_SIZE, game_map)
+            draw_sidepanel(info_data)
+            for button in current_buttons:
+                button.draw(screen, font, COLOURS)
+            draw_cell(r, c, cell_width, cell_height)
+            astronaut_rect = astronaut_image.get_rect()
+            astronaut_rect.topleft = (
+                MAP_AREA.left + c * cell_width,
+                MAP_AREA.top + r * cell_height,
+            )
+            screen.blit(astronaut_image, astronaut_rect)
+            pygame.display.flip()
+            pygame.time.delay(200)
+
 
 def ui_loop(map):
     clock = pygame.time.Clock()
+    animation_done = False
+    astronaut_final_pos = None
+    animation_started = False
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -403,14 +401,44 @@ def ui_loop(map):
         screen.fill(BG_COLOR)
         for button in current_buttons:
             button.draw(screen, font, COLOURS)
-
         draw_map(screen, MAP_AREA, MAP_SIZE, map)
-
-        if drawn_steps:
-            draw_algorithm_path()
-
         draw_sidepanel(info_data)
         draw_astronaut_animation(screen, SIDEPANEL_RECTS)
+
+        if drawn_steps and not animation_done and not animation_started:
+            animation_started = True
+            cell_width = MAP_AREA.width // MAP_SIZE
+            cell_height = MAP_AREA.height // MAP_SIZE
+            all_positions = []
+            if isinstance(drawn_steps[0], list):
+                for l in drawn_steps:
+                    all_positions.extend(l)
+            else:
+                all_positions = drawn_steps
+
+            for row, col in all_positions:
+                screen.fill(BG_COLOR)
+                for button in current_buttons:
+                    button.draw(screen, font, COLOURS)
+                draw_map(screen, MAP_AREA, MAP_SIZE, map)
+                draw_algorithm_path()
+                x = MAP_AREA.left + col * cell_width
+                y = MAP_AREA.top + row * cell_height
+                screen.blit(astronaut_image, (x, y))
+                draw_sidepanel(info_data)
+                draw_astronaut_animation(screen, SIDEPANEL_RECTS)
+                pygame.display.flip()
+                pygame.time.delay(150)
+
+            astronaut_final_pos = all_positions[-1]
+            animation_done = True
+
+        elif animation_done and astronaut_final_pos:
+            draw_algorithm_path()
+            x = MAP_AREA.left + astronaut_final_pos[1] * (MAP_AREA.width // MAP_SIZE)
+            y = MAP_AREA.top + astronaut_final_pos[0] * (MAP_AREA.height // MAP_SIZE)
+            screen.blit(astronaut_image, (x, y))
+
         pygame.display.flip()
         clock.tick(60)
 
